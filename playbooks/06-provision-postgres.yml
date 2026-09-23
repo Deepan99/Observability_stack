@@ -25,6 +25,7 @@
 
   vars_files:
     - ../group_vars/infra.yml
+    - ../vars/vault.yml
 
   vars:
     pg_hba_conf: "{{ postgres_conf_dir }}/pg_hba.conf"

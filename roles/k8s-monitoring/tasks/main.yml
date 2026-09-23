@@ -23,6 +23,7 @@
 - name: Install or Upgrade Grafana k8s-monitoring chart
   ansible.builtin.command: >
     helm upgrade --install k8s-monitoring grafana/k8s-monitoring 
+    --version "^1"
     --namespace monitoring --create-namespace 
     -f /tmp/k8s-values.yaml
   environment:

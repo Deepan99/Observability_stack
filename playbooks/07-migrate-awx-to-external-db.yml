@@ -24,9 +24,13 @@
 # Target: k8s_master (192.168.224.129)
 # ═══════════════════════════════════════════════════════════════
 - name: "PLAY 1 — Dump AWX database from in-cluster PostgreSQL pod"
-  hosts: k8s_master
+  hosts: "{{ target_master | default('k8s_master') }}"
   become: true
   gather_facts: false
+
+  vars_files:
+    - ../group_vars/k8s_master.yml
+    - ../vars/vault.yml
 
   tasks:
 
@@ -83,9 +87,13 @@
 # Target: infra (192.168.224.131)
 # ═══════════════════════════════════════════════════════════════
 - name: "PLAY 2 — Restore AWX database on external PostgreSQL"
-  hosts: infra
+  hosts: "{{ target_infra | default('infra') }}"
   become: true
   gather_facts: false
+
+  vars_files:
+    - ../group_vars/infra.yml
+    - ../vars/vault.yml
 
   vars:
     restore_dump_path: "/tmp/awx_backup.dump"
@@ -172,9 +180,14 @@
 # Target: k8s_master (192.168.224.129)
 # ═══════════════════════════════════════════════════════════════
 - name: "PLAY 3 — Update AWX Operator to use external PostgreSQL"
-  hosts: k8s_master
+  hosts: "{{ target_master | default('k8s_master') }}"
   become: true
   gather_facts: false
+
+  vars_files:
+    - ../group_vars/k8s_master.yml
+    - ../vars/vault.yml
+    - ../group_vars/infra.yml
 
   tasks:
 

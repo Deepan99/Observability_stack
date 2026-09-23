@@ -32,6 +32,8 @@
     - loki-config.yaml
     - mimir-config.yaml
     - tempo-config.yaml
+    - grafana-datasources.yaml
+    - grafana-alert-rules.yaml
 
 - name: Deploy Docker Compose file
   ansible.builtin.template:

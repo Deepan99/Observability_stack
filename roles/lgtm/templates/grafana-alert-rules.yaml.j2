@@ -1,0 +1,62 @@
+apiVersion: 1
+groups:
+  - orgId: 1
+    name: Node Alerts
+    folder: Infrastructure
+    interval: 1m
+    rules:
+      - uid: node_down
+        title: Server Offline
+        condition: A
+        data:
+          - refId: A
+            datasourceUid: my-prometheus
+            model:
+              expr: up == 0
+        for: 1m
+        annotations:
+          summary: "Server {{ $labels.instance }} is down"
+        labels:
+          severity: critical
+
+      - uid: high_cpu
+        title: High CPU Usage
+        condition: A
+        data:
+          - refId: A
+            datasourceUid: my-prometheus
+            model:
+              expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 85
+        for: 5m
+        annotations:
+          summary: "Server {{ $labels.instance }} CPU is > 85%"
+        labels:
+          severity: warning
+
+      - uid: high_ram
+        title: High RAM Usage
+        condition: A
+        data:
+          - refId: A
+            datasourceUid: my-prometheus
+            model:
+              expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes * 100 > 90
+        for: 5m
+        annotations:
+          summary: "Server {{ $labels.instance }} RAM is > 90%"
+        labels:
+          severity: warning
+
+      - uid: high_disk
+        title: High Disk Usage
+        condition: A
+        data:
+          - refId: A
+            datasourceUid: my-prometheus
+            model:
+              expr: 100 - (node_filesystem_avail_bytes{fstype!~"tmpfs|fuse.lxcfs|squashfs"} / node_filesystem_size_bytes{fstype!~"tmpfs|fuse.lxcfs|squashfs"} * 100) > 85
+        for: 5m
+        annotations:
+          summary: "Disk usage on {{ $labels.instance }} is > 85%"
+        labels:
+          severity: warning

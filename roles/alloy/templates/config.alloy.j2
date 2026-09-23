@@ -4,6 +4,8 @@ prometheus.exporter.unix "default" { }
 prometheus.scrape "unix" {
   targets    = prometheus.exporter.unix.default.targets
   forward_to = [prometheus.remote_write.mimir.receiver]
+  scrape_interval = "15s"
+  job_name = "integrations/unix"
 }
 
 prometheus.remote_write "mimir" {

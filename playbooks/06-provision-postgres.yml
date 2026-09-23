@@ -191,7 +191,7 @@
 
     - name: Verify AWX database is accessible with credentials
       community.postgresql.postgresql_query:
-        db: "{{ awx_db_name }}"
+        login_db: "{{ awx_db_name }}"
         login_user: "{{ awx_db_user }}"
         login_password: "{{ awx_db_password }}"
         login_host: "127.0.0.1"

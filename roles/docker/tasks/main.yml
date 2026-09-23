@@ -1,4 +1,9 @@
 ---
+- name: Remove conflicting podman-docker packages
+  ansible.builtin.dnf:
+    name: podman-docker
+    state: absent
+
 - name: Install required tools
   ansible.builtin.dnf:
     name:

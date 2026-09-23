@@ -1,12 +1,13 @@
 apiVersion: 1
 groups:
   - orgId: 1
-    name: Node Alerts
+    name: SRE Enterprise Alerts
     folder: Infrastructure
     interval: 1m
     rules:
+      # 1. The Core Heartbeat
       - uid: node_down
-        title: Server Offline
+        title: P1 - Server Offline
         condition: A
         data:
           - refId: A
@@ -15,48 +16,95 @@ groups:
               expr: up == 0
         for: 1m
         annotations:
-          summary: "Server {{ $labels.instance }} is down"
+          summary: "CRITICAL: Server {{ $labels.instance }} is totally unresponsive."
         labels:
           severity: critical
 
+      # 2. Resource Starvation
       - uid: high_cpu
-        title: High CPU Usage
+        title: CPU Starvation
         condition: A
         data:
           - refId: A
             datasourceUid: my-prometheus
             model:
-              expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 85
+              expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 90
         for: 5m
         annotations:
-          summary: "Server {{ $labels.instance }} CPU is > 85%"
+          summary: "WARNING: Server {{ $labels.instance }} CPU is stuck over 90% for 5 minutes."
         labels:
           severity: warning
 
       - uid: high_ram
-        title: High RAM Usage
+        title: Memory Starvation (Imminent Crash)
         condition: A
         data:
           - refId: A
             datasourceUid: my-prometheus
             model:
-              expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes * 100 > 90
+              expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes * 100 > 95
         for: 5m
         annotations:
-          summary: "Server {{ $labels.instance }} RAM is > 90%"
+          summary: "CRITICAL: Server {{ $labels.instance }} RAM is > 95%. Swap failure imminent."
+        labels:
+          severity: critical
+
+      # 3. Advanced SRE: Predictive Analytics
+      - uid: predictive_disk
+        title: Predictive Alert - Disk Filling Fast
+        condition: A
+        data:
+          - refId: A
+            datasourceUid: my-prometheus
+            model:
+              expr: predict_linear(node_filesystem_free_bytes{fstype!~"tmpfs|fuse.lxcfs|squashfs"}[1h], 4 * 3600) < 0
+        for: 5m
+        annotations:
+          summary: "WARNING: Based on the current write speed, the disk on {{ $labels.instance }} will be completely full in less than 4 hours!"
         labels:
           severity: warning
 
-      - uid: high_disk
-        title: High Disk Usage
+      # 4. Kernel & System Level
+      - uid: oom_kills
+        title: Kernel OOM Kills Detected
         condition: A
         data:
           - refId: A
             datasourceUid: my-prometheus
             model:
-              expr: 100 - (node_filesystem_avail_bytes{fstype!~"tmpfs|fuse.lxcfs|squashfs"} / node_filesystem_size_bytes{fstype!~"tmpfs|fuse.lxcfs|squashfs"} * 100) > 85
+              expr: rate(node_vmstat_oom_kill[5m]) > 0
+        for: 1m
+        annotations:
+          summary: "CRITICAL: The Linux Kernel on {{ $labels.instance }} is terminating processes to save itself from running out of memory."
+        labels:
+          severity: critical
+
+      # 5. Network Degradation
+      - uid: network_errors
+        title: High Network Packet Drops
+        condition: A
+        data:
+          - refId: A
+            datasourceUid: my-prometheus
+            model:
+              expr: rate(node_network_receive_drop_total[5m]) > 10
+        for: 2m
+        annotations:
+          summary: "WARNING: Server {{ $labels.instance }} is aggressively dropping network packets."
+        labels:
+          severity: warning
+
+      # 6. High Load Average
+      - uid: high_load
+        title: System Load Exceeds CPU Cores
+        condition: A
+        data:
+          - refId: A
+            datasourceUid: my-prometheus
+            model:
+              expr: node_load1 > count without (cpu, mode) (node_cpu_seconds_total{mode="idle"}) * 2
         for: 5m
         annotations:
-          summary: "Disk usage on {{ $labels.instance }} is > 85%"
+          summary: "WARNING: The task queue (Load Average) on {{ $labels.instance }} is twice as large as the physical CPU cores. System is lagging."
         labels:
           severity: warning

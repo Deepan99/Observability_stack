@@ -1,14 +1,23 @@
 ---
-- name: Add Grafana GPG key (Debian)
-  ansible.builtin.apt_key:
+- name: Ensure keyrings directory exists (Debian)
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: '0755'
+  when: ansible_os_family == "Debian"
+
+- name: Download Grafana GPG key (Debian)
+  ansible.builtin.get_url:
     url: https://apt.grafana.com/gpg.key
-    state: present
+    dest: /etc/apt/keyrings/grafana.asc
+    mode: '0644'
   when: ansible_os_family == "Debian"
 
 - name: Add Grafana repository (Debian)
   ansible.builtin.apt_repository:
-    repo: "deb https://apt.grafana.com/ stable main"
+    repo: "deb [signed-by=/etc/apt/keyrings/grafana.asc] https://apt.grafana.com/ stable main"
     state: present
+    filename: grafana
   when: ansible_os_family == "Debian"
 
 - name: Install Grafana Alloy (Debian)

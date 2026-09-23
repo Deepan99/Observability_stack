@@ -23,6 +23,9 @@
   become: true
   gather_facts: true
 
+  vars_files:
+    - ../group_vars/infra.yml
+
   vars:
     pg_hba_conf: "{{ postgres_conf_dir }}/pg_hba.conf"
     postgresql_conf: "{{ postgres_conf_dir }}/postgresql.conf"

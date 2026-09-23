@@ -141,7 +141,8 @@
 
     - name: Grant all privileges on 'awx' database to 'awx' user
       community.postgresql.postgresql_privs:
-        database: "{{ awx_db_name }}"
+        db: "{{ awx_db_name }}"
+        login_db: postgres
         role: "{{ awx_db_user }}"
         privs: ALL
         type: database

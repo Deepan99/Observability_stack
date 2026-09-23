@@ -1,0 +1,7 @@
+---
+- name: Deploy LGTM Observability Stack
+  hosts: all
+  become: yes
+  roles:
+    - docker
+    - lgtm

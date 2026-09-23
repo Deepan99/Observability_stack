@@ -1,0 +1,45 @@
+---
+- name: Create LGTM configuration directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - /opt/lgtm
+    - /opt/lgtm/config
+    - /opt/lgtm/data/loki
+    - /opt/lgtm/data/mimir
+    - /opt/lgtm/data/tempo
+    - /opt/lgtm/data/grafana
+
+- name: Set permissions for data directories (required by containers)
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0777'
+  loop:
+    - /opt/lgtm/data/loki
+    - /opt/lgtm/data/mimir
+    - /opt/lgtm/data/tempo
+    - /opt/lgtm/data/grafana
+
+- name: Deploy LGTM configuration files
+  ansible.builtin.template:
+    src: "{{ item }}.j2"
+    dest: "/opt/lgtm/config/{{ item }}"
+    mode: '0644'
+  loop:
+    - loki-config.yaml
+    - mimir-config.yaml
+    - tempo-config.yaml
+
+- name: Deploy Docker Compose file
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: /opt/lgtm/docker-compose.yml
+    mode: '0644'
+
+- name: Start LGTM stack via Docker Compose
+  ansible.builtin.command: docker compose up -d
+  args:
+    chdir: /opt/lgtm

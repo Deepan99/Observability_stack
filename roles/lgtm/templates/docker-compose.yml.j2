@@ -1,0 +1,44 @@
+version: '3.8'
+services:
+  loki:
+    image: grafana/loki:latest
+    command: -config.file=/etc/loki/loki-config.yaml
+    volumes:
+      - ./config/loki-config.yaml:/etc/loki/loki-config.yaml
+      - ./data/loki:/loki
+    ports:
+      - "3100:3100"
+    restart: unless-stopped
+
+  mimir:
+    image: grafana/mimir:latest
+    command: -config.file=/etc/mimir/mimir-config.yaml
+    volumes:
+      - ./config/mimir-config.yaml:/etc/mimir/mimir-config.yaml
+      - ./data/mimir:/data
+    ports:
+      - "9009:9009"
+    restart: unless-stopped
+
+  tempo:
+    image: grafana/tempo:latest
+    command: -config.file=/etc/tempo/tempo-config.yaml
+    volumes:
+      - ./config/tempo-config.yaml:/etc/tempo/tempo-config.yaml
+      - ./data/tempo:/tmp/tempo
+    ports:
+      - "3200:3200"
+      - "4317:4317" # OTLP gRPC
+      - "4318:4318" # OTLP HTTP
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+    volumes:
+      - ./data/grafana:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    restart: unless-stopped

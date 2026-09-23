@@ -19,7 +19,7 @@
 # ═══════════════════════════════════════════════════════════════
 
 - name: Provision PostgreSQL 15 External Database (CentOS)
-  hosts: infra
+  hosts: all
   become: true
   gather_facts: true
 

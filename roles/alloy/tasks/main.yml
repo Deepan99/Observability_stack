@@ -1,0 +1,60 @@
+---
+- name: Add Grafana GPG key (Debian)
+  ansible.builtin.apt_key:
+    url: https://apt.grafana.com/gpg.key
+    state: present
+  when: ansible_os_family == "Debian"
+
+- name: Add Grafana repository (Debian)
+  ansible.builtin.apt_repository:
+    repo: "deb https://apt.grafana.com/ stable main"
+    state: present
+  when: ansible_os_family == "Debian"
+
+- name: Install Grafana Alloy (Debian)
+  ansible.builtin.apt:
+    name: alloy
+    state: present
+    update_cache: yes
+  when: ansible_os_family == "Debian"
+
+- name: Add Grafana repository (RedHat)
+  ansible.builtin.copy:
+    dest: /etc/yum.repos.d/grafana.repo
+    content: |
+      [grafana]
+      name=grafana
+      baseurl=https://rpm.grafana.com
+      repo_gpgcheck=1
+      enabled=1
+      gpgcheck=1
+      gpgkey=https://rpm.grafana.com/gpg.key
+      sslverify=1
+      sslcacert=/etc/pki/tls/certs/ca-bundle.crt
+  when: ansible_os_family == "RedHat"
+
+- name: Install Grafana Alloy (RedHat)
+  ansible.builtin.dnf:
+    name: alloy
+    state: present
+  when: ansible_os_family == "RedHat"
+
+- name: Add alloy user to adm group to read logs (Debian)
+  ansible.builtin.user:
+    name: alloy
+    groups: adm
+    append: yes
+  when: ansible_os_family == "Debian"
+
+- name: Deploy Alloy configuration
+  ansible.builtin.template:
+    src: config.alloy.j2
+    dest: /etc/alloy/config.alloy
+    mode: '0644'
+  notify: Restart Alloy
+
+- name: Ensure Alloy is started and enabled
+  ansible.builtin.service:
+    name: alloy
+    state: started
+    enabled: yes

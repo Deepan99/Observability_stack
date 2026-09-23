@@ -1,0 +1,32 @@
+cluster:
+  name: awx-k3s-cluster
+
+externalServices:
+  prometheus:
+    host: "http://{{ hostvars['node2']['ansible_host'] }}:9009"
+    writeEndpoint: "/api/v1/push"
+  loki:
+    host: "http://{{ hostvars['node2']['ansible_host'] }}:3100"
+    writeEndpoint: "/loki/api/v1/push"
+
+metrics:
+  enabled: true
+  node-exporter:
+    enabled: false # We already installed node-exporter natively on the host!
+  kube-state-metrics:
+    enabled: true
+  windows-exporter:
+    enabled: false
+  alloy:
+    metricsTuning:
+      useIntegrationToRoute: false
+
+logs:
+  enabled: true
+  pod_logs:
+    enabled: true
+  cluster_events:
+    enabled: true
+
+traces:
+  enabled: false # We are not using Tempo for microservices yet

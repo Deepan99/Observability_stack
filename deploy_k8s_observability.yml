@@ -1,0 +1,6 @@
+---
+- name: Deploy Kubernetes Observability Stack
+  hosts: master
+  become: yes
+  roles:
+    - k8s-monitoring

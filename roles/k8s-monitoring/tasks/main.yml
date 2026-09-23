@@ -1,0 +1,29 @@
+---
+- name: Install Helm
+  ansible.builtin.shell: curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 && bash get_helm.sh
+  args:
+    creates: /usr/local/bin/helm
+
+- name: Add Grafana Helm repository
+  ansible.builtin.command: helm repo add grafana https://grafana.github.io/helm-charts
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+
+- name: Update Helm repositories
+  ansible.builtin.command: helm repo update
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+
+- name: Deploy Kubernetes Monitoring values file
+  ansible.builtin.template:
+    src: k8s-values.yaml.j2
+    dest: /tmp/k8s-values.yaml
+    mode: '0644'
+
+- name: Install or Upgrade Grafana k8s-monitoring chart
+  ansible.builtin.command: >
+    helm upgrade --install k8s-monitoring grafana/k8s-monitoring 
+    --namespace monitoring --create-namespace 
+    -f /tmp/k8s-values.yaml
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
